@@ -1,0 +1,40 @@
+# syntax=docker/dockerfile:1
+
+# Development Dockerfile with hot-reload and debugging
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    TRANSFORMERS_CACHE=/models
+
+# Install Python packages with cache mount
+COPY requirements.txt requirements-dev.txt ./
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements.txt && \
+    pip install -r requirements-dev.txt
+
+# Copy download script (will run at container startup, not build time)
+# NOTE: We don't download models during build because docker-compose mounts
+# a volume at /models, which would overlay and hide any models in the image.
+# Instead, we download at runtime on first start, and the volume persists them.
+COPY scripts/download_models.py /tmp/download_models.py
+
+# Copy application code (will be overridden by volume mount)
+COPY app/ /app/app/
+
+EXPOSE 8000
+
+# Download models at startup (only downloads if not cached), then start server
+# This ensures models are in the persisted volume, not hidden by the overlay
+CMD python /tmp/download_models.py && \
+    uvicorn app.main:app --host 0.0.0.0 --port 8000 \
+    --reload --reload-dir /app/app

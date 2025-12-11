@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+      cache_from:
+        - ai-token-wheel-backend:latest
+    image: ai-token-wheel-backend:dev
+    container_name: token-wheel-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for hot-reload
+      - ./backend/app:/app/app:ro
+      # Persist model cache across container restarts
+      - model-cache:/models
+    environment:
+      - TRANSFORMERS_CACHE=/models
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Add frontend service later
+  # frontend:
+  #   build: ./frontend
+  #   ports:
+  #     - "5173:5173"
+
+volumes:
+  model-cache:
+    driver: local
