@@ -24,11 +24,23 @@ services:
       retries: 3
       start_period: 40s
 
-  # Add frontend service later
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #     - "5173:5173"
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    image: ai-token-wheel-frontend:dev
+    container_name: token-wheel-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount source code for hot-reload
+      - ./frontend/src:/app/src:ro
+      - ./frontend/.env:/app/.env:ro
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    command: npm run dev -- --host
 
 volumes:
   model-cache:
