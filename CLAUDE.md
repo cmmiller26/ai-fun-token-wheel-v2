@@ -12,37 +12,69 @@ for local model inference, with no API costs.
 
 ## Technology Stack
 
-- **Backend**: FastAPI (Python 3.11)
+### Backend
+
+- **Framework**: FastAPI (Python 3.11)
 - **ML Framework**: HuggingFace Transformers
 - **Models**: GPT-2 (124M), GPT-2 Medium (355M)
 - **Inference**: Local model inference using PyTorch (CPU-only)
 - **Session Management**: In-memory storage with TTL-based cleanup
 - **Container**: Docker with multi-stage builds for zero-startup-time deployment
 
+### Frontend
+
+- **Framework**: SvelteKit 2 with Svelte 5 (runes mode)
+- **Styling**: Tailwind CSS 4 with Vite plugin
+- **State Management**: Svelte 5 `$state` and `$derived` runes (reactive primitives)
+- **Testing**: Vitest (unit tests), Playwright (E2E tests)
+- **Build Tool**: Vite with SvelteKit plugin
+- **Container**: Docker development image with hot-reload
+
 ## Common Commands
 
 ### Development
 
 ```bash
-# Start development environment with Docker Compose
-docker compose up backend
+# Start full-stack development environment
+docker compose up
 
-# The API will be available at http://localhost:8000
-# API documentation at http://localhost:8000/docs
+# Or start services individually
+docker compose up backend   # Backend only at http://localhost:8000
+docker compose up frontend  # Frontend only at http://localhost:5173
 
-# First run downloads models (~3-5 minutes)
+# Backend API documentation: http://localhost:8000/docs
+# First backend run downloads models (~3-5 minutes)
 # Subsequent runs start instantly (~3-4 seconds) using persisted volume
+
+# Frontend development (without Docker)
+cd frontend
+npm install
+npm run dev  # Starts dev server at http://localhost:5173
+
+# Run frontend tests
+npm run test:unit        # Vitest unit tests
+npm run test:e2e         # Playwright E2E tests
+npm run test             # Run all tests
+
+# Linting and formatting
+npm run lint             # ESLint + Prettier check
+npm run format           # Format with Prettier
+npm run check            # Svelte type checking
 ```
 
 ### Production Build
 
 ```bash
-# Build production Docker image (includes pre-downloaded models)
+# Build backend production image (includes pre-downloaded models)
 cd backend
 docker build -t ai-token-wheel-backend:latest .
-
-# Run production container
 docker run -p 8000:8000 ai-token-wheel-backend:latest
+
+# Build frontend production image
+cd frontend
+npm run build              # Build for production
+npm run preview            # Preview production build
+docker build -t ai-token-wheel-frontend:latest .
 ```
 
 ### Testing API Endpoints
@@ -93,6 +125,41 @@ backend/
 ├── Dockerfile                  # Production multi-stage build
 └── Dockerfile.dev              # Development with hot-reload
 
+frontend/
+├── src/
+│   ├── lib/
+│   │   ├── api/
+│   │   │   └── client.ts       # Backend API client
+│   │   ├── components/
+│   │   │   ├── TokenWheel.svelte       # Main spinning wheel visualization
+│   │   │   ├── SpinButton.svelte       # Spin trigger button
+│   │   │   ├── WheelLegend.svelte      # Token probability legend
+│   │   │   ├── OtherCategoryList.svelte # "Other" category tokens
+│   │   │   ├── GeneratedText.svelte    # Display generated output
+│   │   │   ├── PromptInput.svelte      # Initial prompt input
+│   │   │   ├── ModelSelector.svelte    # GPT-2 model selector
+│   │   │   └── LoadingSpinner.svelte   # Loading indicator
+│   │   ├── stores/
+│   │   │   └── session.svelte.ts       # Global state (Svelte 5 runes)
+│   │   └── utils/
+│   │       ├── colors.ts       # Token color palette
+│   │       ├── wheel.ts        # Wheel segment calculations
+│   │       └── spinner.ts      # Wheel animation logic
+│   ├── routes/
+│   │   ├── +page.svelte        # Landing page
+│   │   ├── +layout.svelte      # App layout
+│   │   └── wheel/
+│   │       └── +page.svelte    # Main token wheel interface
+│   └── app.css                 # Global styles (Tailwind imports)
+├── static/                     # Static assets
+├── e2e/                        # Playwright E2E tests
+├── vite.config.ts              # Vite + Vitest configuration
+├── svelte.config.js            # SvelteKit configuration
+├── playwright.config.ts        # Playwright test configuration
+├── package.json                # NPM dependencies and scripts
+├── Dockerfile                  # Production build
+└── Dockerfile.dev              # Development with hot-reload
+
 docs/
 ├── API_DESIGN.md               # Complete API specification
 └── DOCKER_PLAN.md              # Docker architecture and deployment
@@ -100,7 +167,9 @@ docs/
 
 ### Key Components
 
-**Model Loader** (`app/utils/model_loader.py`):
+#### Backend Components
+
+**Model Loader** (`backend/app/utils/model_loader.py`):
 
 - Loads models from cache directory (`TRANSFORMERS_CACHE=/models`)
 - Uses `local_files_only=True` in production (no network access)
@@ -108,14 +177,14 @@ docs/
 - Maps friendly names ("gpt2") to HuggingFace IDs
   ("openai-community/gpt2")
 
-**Session Manager** (`app/utils/session_manager.py`):
+**Session Manager** (`backend/app/utils/session_manager.py`):
 
 - In-memory session storage with dictionary-based lookup
 - `Session` class tracks prompt, token history, timestamps
 - `TokenInfo` class stores selected token metadata
 - Background task cleans up expired sessions every 5 minutes
 
-**API Router** (`app/routers/sessions.py`):
+**API Router** (`backend/app/routers/sessions.py`):
 
 - Implements 7 core endpoints (create, get, set-prompt, next-token-probs,
   append-token, undo, delete)
@@ -123,18 +192,58 @@ docs/
 - Handles "Other" category sampling by renormalizing below-threshold
   probabilities
 
-### Model Inference Flow
+#### Frontend Components
 
-1. User sets prompt via `POST /api/sessions/{id}/set-prompt`
-2. Frontend requests probabilities via
-   `GET /api/sessions/{id}/next-token-probs?threshold=0.01`
-3. Backend tokenizes current text, runs forward pass, applies softmax to get
+**Session Store** (`frontend/src/lib/stores/session.svelte.ts`):
+
+- Global state management using Svelte 5 `$state` runes (not Svelte stores)
+- `SessionStore` class encapsulates all application state
+- Reactive primitives: `$state` for mutable state, `$derived` for computed
+  values
+- Singleton instance `sessionStore` exported for app-wide access
+- Tracks session ID, model, prompt, current text, token history, wheel data
+
+**API Client** (`frontend/src/lib/api/client.ts`):
+
+- TypeScript wrapper for all backend API calls
+- Handles request/response serialization and error handling
+- Functions: `createSession()`, `setPrompt()`, `getNextTokenProbs()`,
+  `appendToken()`, `undoToken()`, `deleteSession()`
+- Configurable API base URL via `VITE_API_URL` environment variable
+
+**TokenWheel Component** (`frontend/src/lib/components/TokenWheel.svelte`):
+
+- SVG-based wheel visualization with animated spinning
+- Renders wheel segments proportional to token probabilities
+- Color-coded segments using predefined palette
+- Handles wheel animation and segment selection
+- Displays "Other" category as special segment
+
+**Utility Modules**:
+
+- `wheel.ts`: Calculates wheel segment angles and positions from probabilities
+- `spinner.ts`: Manages wheel spin animation with easing and duration
+- `colors.ts`: Defines color palette for token segments
+
+### Application Flow
+
+1. **Session Creation**: Frontend calls `createSession(modelName)`, backend
+   creates session with UUID
+2. **Set Prompt**: User enters prompt, frontend calls `setPrompt(sessionId,
+   prompt)`
+3. **Request Probabilities**: Frontend calls `getNextTokenProbs(sessionId,
+   threshold)`, backend tokenizes text, runs forward pass, applies softmax
+4. **Display Wheel**: Backend returns tokens above threshold + "Other"
+   category. Frontend renders TokenWheel with segments proportional to
    probabilities
-4. Returns tokens above threshold + "Other" category with sample tokens
-5. User selects token (or "Other"), frontend calls
-   `POST /api/sessions/{id}/append-token`
-6. If "Other" selected, backend samples from below-threshold distribution
-7. Token appended to session history, current_text updated
+5. **Spin & Select**: User clicks spin button, wheel animates and randomly
+   selects segment based on probabilities
+6. **Append Token**: Frontend calls `appendToken(sessionId, selection)`. If
+   "Other" selected, backend samples from below-threshold distribution
+7. **Update State**: Backend returns updated text and history, frontend updates
+   session store
+8. **Repeat**: Steps 3-7 repeat for each token generation
+9. **Undo**: User can undo last token via `undoToken(sessionId)`
 
 ## Docker Architecture
 
@@ -181,30 +290,71 @@ Full API specification is documented in `docs/API_DESIGN.md`.
 
 ## Development Practices
 
-### Adding a New Model
+### Backend Development
+
+**Adding a New Model**:
 
 1. Add model ID to `MODEL_IDS` dict in `backend/app/utils/model_loader.py`
 2. Add model to `MODELS` dict in `backend/scripts/download_models.py`
 3. Add model info to `get_available_models()` function
 4. Rebuild Docker image to download new model
 
-### Session Cleanup
+**Session Cleanup**:
 
 Sessions automatically expire after 1 hour of inactivity. Background task
-runs every 5 minutes to cleanup expired sessions. Adjust TTL in `app/main.py`
-if needed.
+runs every 5 minutes to cleanup expired sessions. Adjust TTL in
+`backend/app/main.py` if needed.
 
-### CORS Configuration
+**CORS Configuration**:
 
 Currently allows all origins (`allow_origins=["*"]`). Configure appropriately
-for production deployment in `app/main.py`.
+for production deployment in `backend/app/main.py`.
+
+### Frontend Development
+
+**Svelte 5 Runes** (not Svelte 4 stores):
+
+- Use `$state` for reactive state (replaces `writable` stores)
+- Use `$derived` for computed values (replaces `derived` stores)
+- Use `$effect` for side effects (replaces `$:` reactive statements in many
+  cases)
+- State is defined in class instances (see `SessionStore` class)
+- Import store instance: `import { sessionStore } from '$lib/stores/session.svelte.ts'`
+- Access state: `sessionStore.sessionId`, `sessionStore.isLoading`, etc.
+
+**Component Development**:
+
+- Use `.svelte` extension for Svelte components
+- Use `.svelte.ts` extension for TypeScript files with Svelte runes
+- Components use Svelte 5 syntax (no `export let`, use `let { prop } = $props()`)
+- Prefer composition over large monolithic components
+
+**Styling**:
+
+- Tailwind CSS 4 with `@tailwindcss/vite` plugin (no `postcss` config needed)
+- Use utility classes directly in component markup
+- Global styles in `src/app.css`
+
+**Testing**:
+
+- Unit tests: Vitest with `@vitest/browser-playwright` for component tests
+- E2E tests: Playwright in `e2e/` directory
+- Run `npm run test:unit` for unit tests, `npm run test:e2e` for E2E tests
 
 ## Environment Variables
+
+### Backend Environment
 
 - `TRANSFORMERS_CACHE` - HuggingFace model cache directory
   (default: `/models`)
 - `PYTHONUNBUFFERED=1` - Ensure Python output is not buffered
 - `PYTHONDONTWRITEBYTECODE=1` - Prevent .pyc file creation
+
+### Frontend Environment
+
+- `VITE_API_URL` - Backend API base URL (default: `http://localhost:8000`)
+- Set in `frontend/.env` for local development
+- Passed as environment variable in Docker Compose
 
 ## Performance Characteristics
 

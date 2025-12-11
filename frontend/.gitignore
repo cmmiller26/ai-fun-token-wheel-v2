@@ -1,7 +1,10 @@
+# Test output
 test-results
+
+# Dependencies
 node_modules
 
-# Output
+# Build output
 .output
 .vercel
 .netlify
@@ -9,13 +12,7 @@ node_modules
 /.svelte-kit
 /build
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Env
-.env
-.env.*
+# Environment files (exceptions to root .gitignore)
 !.env.example
 !.env.test
 
