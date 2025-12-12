@@ -46,9 +46,9 @@ export class SessionStore {
 	isSpinning = $state<boolean>(false);
 
 	// Derived values using $derived
-	hasSession = $derived(() => this.sessionId !== null);
-	canUndo = $derived(() => this.tokenHistory.length > 0);
-	generatedText = $derived(() => {
+	hasSession = $derived(this.sessionId !== null);
+	canUndo = $derived(this.tokenHistory.length > 0);
+	generatedText = $derived.by(() => {
 		if (!this.initialPrompt) return '';
 		return this.currentText.substring(this.initialPrompt.length);
 	});

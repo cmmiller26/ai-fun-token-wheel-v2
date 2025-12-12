@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import TokenWheel from '$lib/components/TokenWheel.svelte';
 	import WheelLegend from '$lib/components/WheelLegend.svelte';
@@ -14,8 +13,8 @@
 
 	let rotation = $state(0);
 
-	onMount(() => {
-		// Redirect if no active session
+	// Redirect if no active session (reactively monitors session state)
+	$effect(() => {
 		if (!sessionStore.hasSession) {
 			void goto('/');
 		}
