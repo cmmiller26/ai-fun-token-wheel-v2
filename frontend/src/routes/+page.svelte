@@ -27,7 +27,7 @@
 			sessionStore.setTokenProbabilities(probData);
 
 			// Navigate to wheel
-			goto('/wheel');
+			await goto('/wheel');
 		} catch (error) {
 			sessionStore.error = error instanceof Error ? error.message : 'An error occurred';
 		} finally {
@@ -44,12 +44,10 @@
 	<div class="container mx-auto px-4 py-8 max-w-4xl">
 		<!-- Header -->
 		<header class="text-center mb-12">
-			<h1 class="text-5xl font-bold text-gray-900 mb-4">
-				🎲 AI Token Wheel
-			</h1>
+			<h1 class="text-5xl font-bold text-gray-900 mb-4">🎲 AI Token Wheel</h1>
 			<p class="text-xl text-gray-700 max-w-2xl mx-auto">
-				Visualize how Large Language Models probabilistically sample the next token.
-				An interactive educational tool for understanding LLM generation.
+				Visualize how Large Language Models probabilistically sample the next token. An interactive
+				educational tool for understanding LLM generation.
 			</p>
 		</header>
 
@@ -91,8 +89,8 @@
 		<!-- Info Section -->
 		<div class="mt-8 text-center text-sm text-gray-600">
 			<p>
-				This tool demonstrates the probabilistic nature of language model generation.
-				Each "spin" of the wheel samples from the probability distribution of possible next tokens.
+				This tool demonstrates the probabilistic nature of language model generation. Each "spin" of
+				the wheel samples from the probability distribution of possible next tokens.
 			</p>
 		</div>
 	</div>

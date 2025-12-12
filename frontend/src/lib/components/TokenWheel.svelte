@@ -23,7 +23,11 @@
 	}: {
 		tokens: TokenData[];
 		otherCategory: OtherCategory;
-		onTokenSelect: (selection: { token_id?: number; token_text?: string; category?: string }) => void;
+		onTokenSelect: (selection: {
+			token_id?: number;
+			token_text?: string;
+			category?: string;
+		}) => void;
 		spinning?: boolean;
 		rotation?: number;
 	} = $props();
@@ -62,7 +66,7 @@
 		<g
 			style="transform: rotate({rotation}deg); transform-origin: {centerX}px {centerY}px; transition: transform 2s cubic-bezier(0.25, 0.1, 0.25, 1);"
 		>
-			{#each wedges as wedge, i}
+			{#each wedges as wedge, i (wedge.tokenId ?? wedge.tokenText)}
 				<path
 					d={wedgeToPath(wedge, centerX, centerY, radius)}
 					fill={getWedgeColor(wedge, i)}

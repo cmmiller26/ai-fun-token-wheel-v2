@@ -3,7 +3,6 @@ Session management utilities.
 Handles in-memory session storage and cleanup.
 """
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
 from uuid import uuid4
 
 
@@ -46,7 +45,7 @@ class Session:
         self.session_id = str(uuid4())
         self.model_name = model_name
         self.initial_prompt = ""
-        self.token_history: List[TokenInfo] = []
+        self.token_history: list[TokenInfo] = []
         self.created_at = datetime.utcnow()
         self.last_accessed = datetime.utcnow()
 
@@ -74,7 +73,7 @@ class Session:
         self.token_history.append(token_info)
         self.last_accessed = datetime.utcnow()
 
-    def undo_last_token(self) -> Optional[TokenInfo]:
+    def undo_last_token(self) -> TokenInfo | None:
         """Remove the last token from history."""
         if not self.token_history:
             return None
@@ -104,7 +103,7 @@ class SessionManager:
     """Manager for all sessions."""
 
     def __init__(self):
-        self.sessions: Dict[str, Session] = {}
+        self.sessions: dict[str, Session] = {}
 
     def create_session(self, model_name: str = "gpt2") -> Session:
         """Create a new session."""
@@ -112,7 +111,7 @@ class SessionManager:
         self.sessions[session.session_id] = session
         return session
 
-    def get_session(self, session_id: str) -> Optional[Session]:
+    def get_session(self, session_id: str) -> Session | None:
         """Get a session by ID."""
         session = self.sessions.get(session_id)
         if session:
@@ -129,7 +128,9 @@ class SessionManager:
     def cleanup_expired_sessions(self, ttl_hours: int = 1):
         """Remove expired sessions."""
         expired_sessions = [
-            sid for sid, session in self.sessions.items() if session.is_expired(ttl_hours)
+            sid
+            for sid, session in self.sessions.items()
+            if session.is_expired(ttl_hours)
         ]
         for sid in expired_sessions:
             del self.sessions[sid]

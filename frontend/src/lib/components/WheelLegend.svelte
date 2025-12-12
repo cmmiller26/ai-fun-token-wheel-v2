@@ -19,7 +19,7 @@
 		<p class="text-sm text-gray-500">No tokens to display</p>
 	{:else}
 		<div class="space-y-2 max-h-96 overflow-y-auto">
-			{#each tokens as token}
+			{#each tokens as token (token.token_id)}
 				<div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
 					<div
 						class="w-4 h-4 rounded flex-shrink-0"

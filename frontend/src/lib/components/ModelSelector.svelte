@@ -39,8 +39,10 @@
 		<div class="text-sm text-gray-500">No models available</div>
 	{:else}
 		<div class="space-y-2">
-			{#each models as model}
-				<label class="flex items-start gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50 cursor-pointer transition-colors">
+			{#each models as model (model.id)}
+				<label
+					class="flex items-start gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50 cursor-pointer transition-colors"
+				>
 					<input
 						type="radio"
 						bind:group={selectedModel}

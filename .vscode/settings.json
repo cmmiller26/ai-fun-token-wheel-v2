@@ -1,0 +1,146 @@
+{
+  // ============================================================================
+  // REQUIRED EXTENSIONS:
+  // Install these extensions for full functionality:
+  //
+  // Backend (Python):
+  // - ms-python.python (Python)
+  // - ms-python.black-formatter (Black Formatter)
+  // - charliermarsh.ruff (Ruff)
+  // - ms-python.mypy-type-checker (Mypy Type Checker)
+  //
+  // Frontend (TypeScript/Svelte):
+  // - svelte.svelte-vscode (Svelte for VS Code)
+  // - dbaeumer.vscode-eslint (ESLint)
+  // - esbenp.prettier-vscode (Prettier)
+  // - bradlc.vscode-tailwindcss (Tailwind CSS IntelliSense)
+  // ============================================================================
+
+  // Editor Settings
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "editor.rulers": [88, 100],
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // Python/Backend Settings
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.typeCheckingMode": "basic",
+
+  // Black Formatter (requires ms-python.black-formatter extension)
+  "black-formatter.args": ["--config", "${workspaceFolder}/backend/pyproject.toml"],
+  "black-formatter.path": ["${workspaceFolder}/backend/.venv/bin/black"],
+
+  // Ruff Linter (requires charliermarsh.ruff extension)
+  "ruff.enable": true,
+  "ruff.path": ["${workspaceFolder}/backend/.venv/bin/ruff"],
+  "ruff.configurationPreference": "filesystemFirst",
+  "ruff.fixAll": true,
+  "ruff.organizeImports": true,
+
+  // Mypy Type Checker (requires ms-python.mypy-type-checker extension)
+  "mypy-type-checker.args": [
+    "--config-file=${workspaceFolder}/backend/pyproject.toml"
+  ],
+  "mypy-type-checker.path": ["${workspaceFolder}/backend/.venv/bin/mypy"],
+
+  // JavaScript/TypeScript Settings
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // Svelte Settings (requires svelte.svelte-vscode extension)
+  "[svelte]": {
+    "editor.defaultFormatter": "svelte.svelte-vscode"
+  },
+  "svelte.enable-ts-plugin": true,
+  "svelte.plugin.svelte.compilerWarnings": {
+    "a11y-click-events-have-key-events": "ignore",
+    "a11y-no-static-element-interactions": "ignore"
+  },
+
+  // ESLint Settings (requires dbaeumer.vscode-eslint extension)
+  "eslint.enable": true,
+  "eslint.workingDirectories": ["./frontend"],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "svelte"
+  ],
+
+  // Prettier Settings (requires esbenp.prettier-vscode extension)
+  "prettier.enable": true,
+  "prettier.requireConfig": false,
+
+  // Tailwind CSS Settings (requires bradlc.vscode-tailwindcss extension)
+  "tailwindCSS.experimental.classRegex": [
+    ["class:\\s*['\"`]([^'\"`]*)['\"`]", "([^'\"`]*)"],
+    ["class:\\s*{([^}]*)}", "'([^']*)'"]
+  ],
+
+  // File Associations
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "*.svelte": "svelte"
+  },
+
+  // Exclude from Watchers (Performance)
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.venv/**": true,
+    "**/__pycache__/**": true,
+    "**/.pytest_cache/**": true,
+    "**/.mypy_cache/**": true,
+    "**/.ruff_cache/**": true,
+    "**/dist/**": true,
+    "**/build/**": true
+  },
+
+  // Search Exclusions
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.venv": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.svelte-kit": true
+  },
+
+  // Terminal Settings
+  "terminal.integrated.env.osx": {
+    "VITE_API_URL": "http://localhost:8000"
+  },
+  "terminal.integrated.env.linux": {
+    "VITE_API_URL": "http://localhost:8000"
+  },
+  "terminal.integrated.env.windows": {
+    "VITE_API_URL": "http://localhost:8000"
+  }
+}

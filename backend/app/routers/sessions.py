@@ -3,27 +3,26 @@ Session management API endpoints.
 """
 import torch
 from fastapi import APIRouter, HTTPException
-from typing import Optional
 
 from app.models import (
+    AppendedTokenInfo,
+    AppendTokenRequest,
+    AppendTokenResponse,
     CreateSessionRequest,
     CreateSessionResponse,
+    DeleteSessionResponse,
+    NextTokenProbsResponse,
+    OtherCategoryInfo,
+    OtherCategorySelectionInfo,
     SessionStateResponse,
     SetPromptRequest,
     SetPromptResponse,
-    NextTokenProbsResponse,
-    AppendTokenRequest,
-    AppendTokenResponse,
-    UndoTokenResponse,
-    DeleteSessionResponse,
     TokenData,
-    OtherCategoryInfo,
-    AppendedTokenInfo,
-    OtherCategorySelectionInfo,
     TokenHistoryItem,
+    UndoTokenResponse,
 )
-from app.utils.session_manager import session_manager, TokenInfo
-from app.utils.model_loader import load_model, MODEL_IDS
+from app.utils.model_loader import MODEL_IDS, load_model
+from app.utils.session_manager import TokenInfo, session_manager
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
@@ -42,7 +41,9 @@ async def create_session(request: CreateSessionRequest):
     try:
         load_model(request.model_name)
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Model failed to load: {str(e)}")
+        raise HTTPException(
+            status_code=503, detail=f"Model failed to load: {str(e)}"
+        ) from e
 
     # Create session
     session = session_manager.create_session(model_name=request.model_name)
@@ -97,8 +98,9 @@ async def get_next_token_probs(
     temperature: float = 1.0,
 ):
     """
-    Returns probability distribution for the next token using dynamic threshold filtering.
-    This is the core endpoint for the probability wheel visualization.
+    Returns probability distribution for the next token using dynamic
+    threshold filtering. This is the core endpoint for the probability
+    wheel visualization.
     """
     session = session_manager.get_session(session_id)
     if not session:
@@ -109,10 +111,14 @@ async def get_next_token_probs(
 
     # Validate parameters
     if not 0.0 <= threshold <= 1.0:
-        raise HTTPException(status_code=400, detail="Threshold must be between 0.0 and 1.0")
+        raise HTTPException(
+            status_code=400, detail="Threshold must be between 0.0 and 1.0"
+        )
 
     if temperature <= 0:
-        raise HTTPException(status_code=400, detail="Temperature must be greater than 0")
+        raise HTTPException(
+            status_code=400, detail="Temperature must be greater than 0"
+        )
 
     # Load model and tokenizer
     model, tokenizer = load_model(session.model_name)
@@ -149,7 +155,7 @@ async def get_next_token_probs(
 
     # Create above threshold tokens list
     above_threshold_tokens = []
-    for idx, prob in zip(above_threshold_indices, above_threshold_probs):
+    for idx, prob in zip(above_threshold_indices, above_threshold_probs, strict=True):
         token_id = int(idx)
         token_text = tokenizer.decode([token_id])
         above_threshold_tokens.append(
@@ -208,7 +214,8 @@ async def get_next_token_probs(
 async def append_token(session_id: str, request: AppendTokenRequest):
     """
     Appends a selected token to the conversation context.
-    Handles both explicit token selection and "Other" category selection with backend sampling.
+    Handles both explicit token selection and "Other" category selection
+    with backend sampling.
     """
     session = session_manager.get_session(session_id)
     if not session:
@@ -313,19 +320,15 @@ async def append_token(session_id: str, request: AppendTokenRequest):
     # Append token to session
     session.append_token(token_info)
 
-    # Build response
-    response_data = {
-        "session_id": session.session_id,
-        "previous_text": previous_text,
-        "appended_token": AppendedTokenInfo(**token_info.to_dict()),
-        "current_text": session.current_text,
-        "token_history": [TokenHistoryItem(**t.to_dict()) for t in session.token_history],
-    }
-
-    if other_category_info:
-        response_data["other_category_info"] = other_category_info
-
-    return AppendTokenResponse(**response_data)
+    # Build and return response
+    return AppendTokenResponse(
+        session_id=session.session_id,
+        previous_text=previous_text,
+        appended_token=AppendedTokenInfo(**token_info.to_dict()),
+        current_text=session.current_text,
+        token_history=[TokenHistoryItem(**t.to_dict()) for t in session.token_history],
+        other_category_info=other_category_info,
+    )
 
 
 @router.post("/{session_id}/undo", response_model=UndoTokenResponse)
@@ -344,7 +347,10 @@ async def undo_last_token(session_id: str):
     if removed_token is None:
         raise HTTPException(
             status_code=400,
-            detail="Cannot undo. No generated tokens to remove. Only initial prompt remains.",
+            detail=(
+                "Cannot undo. No generated tokens to remove. "
+                "Only initial prompt remains."
+            ),
         )
 
     return UndoTokenResponse(

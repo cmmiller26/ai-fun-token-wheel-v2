@@ -1,8 +1,7 @@
 """
 Pydantic models for request/response validation.
 """
-from typing import List, Optional
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # Request Models
@@ -23,9 +22,11 @@ class SetPromptRequest(BaseModel):
 class AppendTokenRequest(BaseModel):
     """Request to append a token to the conversation."""
 
-    token_id: Optional[int] = Field(None, description="Token ID to append")
-    token_text: Optional[str] = Field(None, description="Token text to append")
-    category: Optional[str] = Field(None, description="Set to 'other' for backend sampling")
+    token_id: int | None = Field(None, description="Token ID to append")
+    token_text: str | None = Field(None, description="Token text to append")
+    category: str | None = Field(
+        None, description="Set to 'other' for backend sampling"
+    )
 
 
 # Response Models
@@ -35,7 +36,7 @@ class TokenData(BaseModel):
     token_id: int
     token_text: str
     probability: float
-    log_probability: Optional[float] = None
+    log_probability: float | None = None
 
 
 class TokenHistoryItem(BaseModel):
@@ -46,7 +47,7 @@ class TokenHistoryItem(BaseModel):
     probability: float
     category: str
     selected_at: str
-    sampled_from_other: Optional[bool] = None
+    sampled_from_other: bool | None = None
 
 
 class OtherCategoryInfo(BaseModel):
@@ -54,7 +55,7 @@ class OtherCategoryInfo(BaseModel):
 
     total_probability: float
     token_count: int
-    sample_tokens: List[TokenData]
+    sample_tokens: list[TokenData]
 
 
 class OtherCategorySelectionInfo(BaseModel):
@@ -84,7 +85,7 @@ class SessionStateResponse(BaseModel):
     model_name: str
     initial_prompt: str
     current_text: str
-    token_history: List[TokenHistoryItem]
+    token_history: list[TokenHistoryItem]
     generation_count: int
     created_at: str
     last_accessed: str
@@ -106,7 +107,7 @@ class NextTokenProbsResponse(BaseModel):
     current_text: str
     threshold: float
     temperature: float
-    above_threshold_tokens: List[TokenData]
+    above_threshold_tokens: list[TokenData]
     other_category: OtherCategoryInfo
     total_above_threshold_probability: float
     vocabulary_size: int
@@ -119,7 +120,7 @@ class AppendedTokenInfo(BaseModel):
     token_text: str
     probability: float
     category: str
-    sampled_from_other: Optional[bool] = None
+    sampled_from_other: bool | None = None
 
 
 class AppendTokenResponse(BaseModel):
@@ -129,8 +130,8 @@ class AppendTokenResponse(BaseModel):
     previous_text: str
     appended_token: AppendedTokenInfo
     current_text: str
-    token_history: List[TokenHistoryItem]
-    other_category_info: Optional[OtherCategorySelectionInfo] = None
+    token_history: list[TokenHistoryItem]
+    other_category_info: OtherCategorySelectionInfo | None = None
 
 
 class UndoTokenResponse(BaseModel):
@@ -140,7 +141,7 @@ class UndoTokenResponse(BaseModel):
     previous_text: str
     removed_token: AppendedTokenInfo
     current_text: str
-    token_history: List[TokenHistoryItem]
+    token_history: list[TokenHistoryItem]
     message: str
 
 
@@ -164,7 +165,7 @@ class ModelInfo(BaseModel):
 class ModelsResponse(BaseModel):
     """Response with available models."""
 
-    models: List[ModelInfo]
+    models: list[ModelInfo]
 
 
 class HealthResponse(BaseModel):
@@ -188,4 +189,4 @@ class ErrorResponse(BaseModel):
 
     error: str
     message: str
-    current_text: Optional[str] = None
+    current_text: str | None = None

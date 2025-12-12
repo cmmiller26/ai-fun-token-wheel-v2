@@ -10,10 +10,10 @@ from datetime import datetime
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.models import HealthResponse, ModelsResponse, ReadyResponse
 from app.routers import sessions
-from app.utils.model_loader import load_model, get_available_models, is_model_loaded
+from app.utils.model_loader import get_available_models, is_model_loaded, load_model
 from app.utils.session_manager import session_manager
-from app.models import ModelsResponse, HealthResponse, ReadyResponse
 
 # Configure logging
 logging.basicConfig(
@@ -72,7 +72,9 @@ async def lifespan(app: FastAPI):
 # Create FastAPI application
 app = FastAPI(
     title="AI Token Wheel API",
-    description="Educational backend for visualizing LLM token probability distributions",
+    description=(
+        "Educational backend for visualizing LLM token probability " "distributions"
+    ),
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -96,7 +98,9 @@ async def root():
     return {
         "name": "AI Token Wheel API",
         "version": "1.0.0",
-        "description": "Educational backend for visualizing LLM token probability distributions",
+        "description": (
+            "Educational backend for visualizing LLM token probability " "distributions"
+        ),
         "docs": "/docs",
         "health": "/health",
     }

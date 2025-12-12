@@ -26,10 +26,7 @@ interface OtherCategory {
 /**
  * Calculate wedge positions based on token probabilities
  */
-export function calculateWedges(
-	tokens: TokenData[],
-	otherCategory: OtherCategory
-): Wedge[] {
+export function calculateWedges(tokens: TokenData[], otherCategory: OtherCategory): Wedge[] {
 	const wedges: Wedge[] = [];
 	let currentAngle = -90; // Start at top (12 o'clock)
 

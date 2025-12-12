@@ -3,15 +3,15 @@ Model loading utilities for production.
 Uses pre-downloaded models from Docker image.
 """
 import os
-from typing import Dict, Tuple
-from transformers import AutoModelForCausalLM, AutoTokenizer
+
 import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Use pre-downloaded models (set during Docker build)
 CACHE_DIR = os.getenv("TRANSFORMERS_CACHE", "/models")
 
 # Global model cache (loaded once at startup)
-_model_cache: Dict[str, Tuple] = {}
+_model_cache: dict[str, tuple] = {}
 
 # Map friendly names to HuggingFace IDs
 MODEL_IDS = {
@@ -52,7 +52,7 @@ def load_model(model_name: str = "gpt2"):
     # Cache for future requests
     _model_cache[model_name] = (model, tokenizer)
 
-    print(f"  Model loaded successfully!")
+    print("  Model loaded successfully!")
     return model, tokenizer
 
 

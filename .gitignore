@@ -9,14 +9,22 @@ Thumbs.db
 *~
 
 # IDE and editor files
-.vscode/
+# Ignore everything in .vscode...
+.vscode/*
+
+# ...Except these shared config files
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# JetBrains
 .idea/
+
+# Editor backups and temp files
 *.swp
 *.swo
-*~
-.project
-.classpath
-.settings/
+*.project
+*.classpath
+*.settings/
 *.sublime-project
 *.sublime-workspace
 

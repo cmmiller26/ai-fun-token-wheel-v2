@@ -18,9 +18,7 @@
 </script>
 
 <div class="space-y-3">
-	<label for="prompt-input" class="text-sm font-semibold text-gray-700">
-		Enter Your Prompt
-	</label>
+	<label for="prompt-input" class="text-sm font-semibold text-gray-700"> Enter Your Prompt </label>
 
 	<textarea
 		id="prompt-input"
