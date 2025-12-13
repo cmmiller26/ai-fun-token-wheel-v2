@@ -3,8 +3,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-      cache_from:
-        - ai-token-wheel-backend:latest
     image: ai-token-wheel-backend:dev
     container_name: token-wheel-backend
     ports:
